@@ -1,25 +1,72 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>HaoToChat</title>
+    <title>Chat with AI</title>
+    <style>
+        #chatOutput {
+            border: 1px solid #ccc;
+            padding: 10px;
+            height: 300px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+        #chatOutput p {
+            margin: 5px 0;
+        }
+    </style>
 </head>
 <body>
-    <h1>Hi, I'm Haonopolli, I'm here to chat</h1>
-    <div id="chatbox">
-        <p>--------------------------------</p>
-        <p>Chat messages will appear here...</p>
-        <p>--------------------------------</p>
-    </div>
-    <input type="text" id="userInput" placeholder="Type your message here...">
-    <button onclick="sendMessage()">Send</button>
+    <h1>Welcome to My AI Chat</h1>
+    <form id="chatForm">
+        <input type="text" id="userInput" placeholder="Type your message here..." />
+        <button type="submit">Send</button>
+    </form>
+    <div id="chatOutput"></div>
 
     <script>
-        function sendMessage() {
-            var userInput = document.getElementById('userInput').value;
-            // Here you would add the code to send this input to your ChatGPT API
-            console.log('User message:', userInput);
-            // Clear input field
+        // Store chat messages in an array
+        const messages = [];
+
+        document.getElementById('chatForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            // Get user input
+            const userMessage = document.getElementById('userInput').value;
+            if (userMessage.trim() === "") return; // Ignore empty messages
+
+            // Add user message to messages array
+            messages.push({ sender: "You", text: userMessage });
+
+            // Display the updated messages
+            displayMessages();
+
+            // Clear the input field
             document.getElementById('userInput').value = '';
+
+            // Placeholder for sending to the server/AI response
+            fakeAIResponse();
+        });
+
+        function displayMessages() {
+            const chatOutput = document.getElementById('chatOutput');
+            chatOutput.innerHTML = ""; // Clear the chat output
+
+            // Render all messages
+            messages.forEach(msg => {
+                const messageElement = document.createElement('p');
+                messageElement.innerHTML = `<strong>${msg.sender}:</strong> ${msg.text}`;
+                chatOutput.appendChild(messageElement);
+            });
+
+            // Scroll to the bottom
+            chatOutput.scrollTop = chatOutput.scrollHeight;
+        }
+
+        function fakeAIResponse() {
+            // Simulate an AI response for now
+            const aiResponse = "This is a response from the AI!";
+            messages.push({ sender: "AI", text: aiResponse });
+            displayMessages();
         }
     </script>
 </body>
