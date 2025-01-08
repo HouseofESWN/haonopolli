@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chatbox</title>
+</head>
+<body>
+    <h1>Welcome to the Chat</h1>
+    <div id="chatbox">
+        <p>Chat messages will appear here...</p>
+    </div>
+    <input type="text" id="userInput" placeholder="Type your message here...">
+    <button onclick="sendMessage()">Send</button>
+
+    <script>
+        function sendMessage() {
+            var userInput = document.getElementById('userInput').value;
+            // Here you would add the code to send this input to your ChatGPT API
+            console.log('User message:', userInput);
+            // Clear input field
+            document.getElementById('userInput').value = '';
+        }
+    </script>
+</body>
+</html>
