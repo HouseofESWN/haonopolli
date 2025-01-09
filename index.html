@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>888Matrix Chat</title>
+    <title>999Matrix Chat</title>
     <style>
         body {
             background-color: black;
@@ -94,14 +94,20 @@
             }
         }
 
-        // Function to display messages
+        // Function to display messages with typing animation
         async function displayMessage(sender, text, isUser = false) {
-            const prompt = isUser ? '>' : 'Haonopolli:';
+            const prompt = isUser ? '>' : 'H:';
             const messageElement = document.createElement('div');
             messageElement.style.fontWeight = 'bold'; // Ensure consistent boldness
             messageElement.style.fontSize = '18px'; // Ensure consistent font size
-            messageElement.innerHTML = `<span class="prompt">${prompt}</span> ${text}`;
+            messageElement.innerHTML = `<span class="prompt">${prompt}</span> `;
             chatOutput.appendChild(messageElement);
+
+            for (let i = 0; i < text.length; i++) {
+                messageElement.innerHTML += text[i];
+                await new Promise((resolve) => setTimeout(resolve, 50)); // Typing effect (50ms per letter)
+            }
+
             chatOutput.scrollTop = chatOutput.scrollHeight; // Scroll to bottom
         }
 
