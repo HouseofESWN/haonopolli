@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>You are through to Haonopolli</title>
+    <title>RabbitHole</title>
     <style>
         body {
             background-color: black;
@@ -13,28 +13,32 @@
             padding: 0;
             display: flex;
             flex-direction: column;
-            align-items: center;
             justify-content: center;
             height: 100vh;
         }
         #chatOutput {
-            width: 80%;
-            height: 70%;
-            border: 1px solid green;
+            flex-grow: 1;
             padding: 10px;
             overflow-y: auto;
             white-space: pre-wrap;
         }
-        #chatInput {
-            width: 80%;
-            margin-top: 10px;
+        #terminalInput {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border-top: 1px solid green;
+        }
+        #terminalPrompt {
+            color: green;
+            margin-right: 5px;
         }
         input {
             background-color: black;
             color: green;
-            border: 1px solid green;
-            padding: 5px;
-            width: calc(100% - 10px);
+            border: none;
+            outline: none;
+            font-family: monospace;
+            width: 100%;
         }
         .typing-cursor {
             display: inline-block;
@@ -52,8 +56,9 @@
 </head>
 <body>
     <div id="chatOutput"></div>
-    <div id="chatInput">
-        <input type="text" id="userInput" placeholder="Type your message here..." autofocus />
+    <div id="terminalInput">
+        <span id="terminalPrompt">></span>
+        <input type="text" id="userInput" autofocus />
     </div>
 
     <script>
@@ -65,7 +70,7 @@
         let messages = JSON.parse(sessionStorage.getItem(storageKey)) || [];
 
         // Function to display messages with typing animation
-        async function displayMessage(sender, text) {
+        async function displayMessage(sender, text, isAI = false) {
             const messageElement = document.createElement('div');
             messageElement.innerHTML = `<strong>${sender}:</strong> `;
             chatOutput.appendChild(messageElement);
@@ -75,7 +80,14 @@
                 await new Promise((resolve) => setTimeout(resolve, 50)); // Typing effect
             }
 
-            messageElement.innerHTML += `<span class="typing-cursor"></span>`;
+            if (isAI) {
+                // Remove cursor after the AI finishes typing
+                const cursor = document.createElement('span');
+                cursor.className = 'typing-cursor';
+                messageElement.appendChild(cursor);
+                setTimeout(() => cursor.remove(), 500);
+            }
+
             chatOutput.scrollTop = chatOutput.scrollHeight; // Scroll to bottom
         }
 
@@ -105,7 +117,7 @@
                 const aiResponse = "This is a response from the AI.";
                 messages.push({ sender: 'AI', text: aiResponse });
                 sessionStorage.setItem(storageKey, JSON.stringify(messages));
-                await displayMessage('AI', aiResponse);
+                await displayMessage('AI', aiResponse, true);
             }
         });
     </script>
