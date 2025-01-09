@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>XVI Matrix</title>
+    <title>XVII Matrix</title>
     <style>
         /* Style for the entire page */
         body {
@@ -53,14 +53,10 @@
             font-weight: bold; /* Bold input text */
             font-size: 18px; /* Font size for the input text */
             width: 100%; /* Makes the input take up all available horizontal space */
+            caret-color: transparent; /* Hide the default caret */
         }
 
         /* Block cursor effect */
-        .inputWrapper input::placeholder {
-            color: green; /* Placeholder color for better visibility */
-            opacity: 1; /* Ensure placeholder text is fully visible */
-        }
-
         .inputWrapper::after {
             content: ''; /* Creates an empty block for the cursor */
             position: absolute; /* Position it inside the input */
@@ -84,16 +80,30 @@
         const chatOutput = document.getElementById('chatOutput'); // Reference to the chat output area
 
         // Generate a unique userId for the session
-        const userId = `user-${Math.random().toString(36).substring(2, 15)}`; 
-        // Generates a random unique userId for session tracking.
+        const userId = `user-${Math.random().toString(36).substring(2, 15)}`;
 
         // Function to display messages on the chat screen
         async function displayMessage(sender, text, isUser = false) {
-            const prompt = isUser ? '>' : 'AI:'; // Use ">" for user messages and "AI:" for AI responses
+            const prompt = isUser ? '>' : 'H:'; // Use ">" for user messages and "AI:" for AI responses
             const messageElement = document.createElement('div'); // Create a new div for the message
-            messageElement.innerHTML = `<span class="prompt">${prompt}</span> ${text}`; // Add the prompt and message
+            messageElement.innerHTML = `<span class="prompt">${prompt}</span> `; // Add the prompt
+
+            if (!isUser) {
+                await typeWriter(messageElement, text); // Simulate AI typing effect
+            } else {
+                messageElement.innerHTML += text; // Append user message directly
+            }
+
             chatOutput.appendChild(messageElement); // Add the message to the chat output area
             chatOutput.scrollTop = chatOutput.scrollHeight; // Scroll to the bottom of the chat output area
+        }
+
+        // Function to simulate AI typing effect
+        async function typeWriter(element, text) {
+            for (let i = 0; i < text.length; i++) {
+                element.innerHTML += text[i]; // Append one character at a time
+                await new Promise(resolve => setTimeout(resolve, 50)); // Wait 50ms between each character
+            }
         }
 
         // Function to add a new input line
@@ -102,11 +112,16 @@
             inputWrapper.className = 'inputWrapper'; // Apply styling to the wrapper
             inputWrapper.innerHTML = `<span class="prompt">></span> `; // Add the ">" prompt to the input
             const inputField = document.createElement('input'); // Create an input field for user text
-            inputField.setAttribute('placeholder', ''); // Ensure no placeholder text affects the cursor behavior
             inputWrapper.appendChild(inputField); // Add the input field to the wrapper
             chatOutput.appendChild(inputWrapper); // Add the wrapper to the chat output area
 
             inputField.focus(); // Automatically focus on the input field
+
+            // Dynamically update block cursor position while typing
+            inputField.addEventListener('input', () => {
+                const cursor = inputWrapper.querySelector('::after'); // Reference the cursor
+                inputWrapper.style.setProperty('--cursor-offset', `${inputField.value.length}ch`); // Adjust position
+            });
 
             // Listen for the user pressing the Enter key
             inputField.addEventListener('keypress', async (event) => {
@@ -115,7 +130,7 @@
                     if (!userMessage) return; // If the input is empty, do nothing
 
                     inputWrapper.innerHTML = `<span class="prompt">></span> ${userMessage}`; 
-                    // Replace the input field with the static user message (fix for duplicate message display).
+                    // Replace the input field with the static user message
 
                     try {
                         // Send the user's message to the backend
