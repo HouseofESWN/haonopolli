@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RabbitHole</title>
+    <title>Matrix Chat</title>
     <style>
         body {
             background-color: black;
@@ -21,9 +21,6 @@
             padding: 10px;
             overflow-y: auto;
             white-space: pre-wrap;
-        }
-        #terminalInput {
-            display: block;
         }
         .prompt {
             color: green;
@@ -44,7 +41,7 @@
             font-family: monospace;
             font-weight: bold;
             width: 100%;
-            caret-color: green;
+            caret-color: transparent; /* Hides the default caret */
         }
         @keyframes blink {
             50% {
@@ -58,10 +55,9 @@
 
     <script>
         const chatOutput = document.getElementById('chatOutput');
-        const storageKey = 'matrixChatHistory';
 
-        // Load conversation history from session storage
-        let messages = JSON.parse(sessionStorage.getItem(storageKey)) || [];
+        // Clear session storage on refresh
+        sessionStorage.clear();
 
         // Function to display messages with typing animation
         async function displayMessage(sender, text, isUser = false) {
@@ -77,16 +73,6 @@
 
             chatOutput.scrollTop = chatOutput.scrollHeight; // Scroll to bottom
         }
-
-        // Load messages on page load
-        async function loadHistory() {
-            for (const message of messages) {
-                await displayMessage(message.sender, message.text, message.sender === 'You');
-            }
-            // Add a new input line for typing
-            addInputLine();
-        }
-        loadHistory();
 
         // Function to add a new input line
         function addInputLine() {
@@ -105,15 +91,11 @@
                     const userMessage = inputField.value.trim();
                     if (!userMessage) return;
 
-                    // Remove the input field and replace it with text
+                    // Remove the input field and replace it with static text
                     inputWrapper.innerHTML = `<span class="prompt">></span> ${userMessage}`;
-                    messages.push({ sender: 'You', text: userMessage });
-                    sessionStorage.setItem(storageKey, JSON.stringify(messages));
-
+                    
                     // Simulate AI response
                     const aiResponse = "This is a response from the AI.";
-                    messages.push({ sender: 'AI', text: aiResponse });
-                    sessionStorage.setItem(storageKey, JSON.stringify(messages));
                     await displayMessage('AI', aiResponse);
 
                     // Add a new input line
@@ -121,6 +103,9 @@
                 }
             });
         }
+
+        // Initialize the first input line
+        addInputLine();
     </script>
 </body>
 </html>
