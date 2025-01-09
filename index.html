@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>777Matrix Chat</title>
+    <title>XVIXVI Matrix Chat</title>
     <style>
         body {
             background-color: black;
@@ -112,9 +112,29 @@
                     // Remove the input field and replace it with static text
                     inputWrapper.innerHTML = `<span class="prompt">></span> ${userMessage}`;
                     
-                    // Simulate AI response
-                    const aiResponse = "This is a response from the AI.";
-                    await displayMessage('AI', aiResponse);
+                    try {
+                        // Send the user's message to the backend API and fetch AI's response
+                        const response = await fetch('http://localhost:4000/api/chat', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ message: userMessage }),
+                        });
+
+                        if (!response.ok) {
+                            throw new Error('Failed to fetch response from the server.');
+                        }
+
+                        const data = await response.json();
+
+                        // Display the AI's response
+                        await displayMessage('AI', data.reply);
+
+                    } catch (error) {
+                        console.error('Error:', error);
+                        await displayMessage('AI', 'Sorry, something went wrong. Please try again later.');
+                    }
 
                     // Add a new input line with automatic focus
                     addInputLine();
