@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>111Matrix Chat</title>
+    <title>222Matrix Chat</title>
     <style>
         body {
             background-color: black;
@@ -34,14 +34,7 @@
             font-family: monospace;
             font-weight: bold;
             width: 100%;
-            caret-color: green; /* Enables default caret */
-        }
-        .typing-cursor {
-            display: inline-block;
-            width: 10px;
-            height: 18px;
-            background-color: green;
-            animation: blink 1s steps(2) infinite;
+            caret-color: green; /* Enables the cursor in the input box */
         }
         @keyframes blink {
             50% {
@@ -82,18 +75,11 @@
             inputField.type = 'text';
             inputField.autofocus = true;
 
-            const cursor = document.createElement('span');
-            cursor.className = 'typing-cursor';
-
             inputWrapper.appendChild(inputField);
-            inputWrapper.appendChild(cursor);
             chatOutput.appendChild(inputWrapper);
             chatOutput.scrollTop = chatOutput.scrollHeight; // Scroll to bottom
 
-            inputField.addEventListener('input', () => {
-                // Move cursor to the end of the input line as the user types
-                cursor.style.display = 'inline-block';
-            });
+            inputField.focus(); // Automatically focus on the input field
 
             inputField.addEventListener('keypress', async (event) => {
                 if (event.key === 'Enter') {
@@ -107,7 +93,7 @@
                     const aiResponse = "This is a response from the AI.";
                     await displayMessage('AI', aiResponse);
 
-                    // Add a new input line with a cursor
+                    // Add a new input line with automatic focus
                     addInputLine();
                 }
             });
