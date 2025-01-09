@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RabbitHole</title>
+    <title>Matrix Chat</title>
     <style>
         body {
             background-color: black;
@@ -23,22 +23,11 @@
             white-space: pre-wrap;
         }
         #terminalInput {
-            display: flex;
-            align-items: center;
-            padding: 10px;
-            border-top: 1px solid green;
+            display: block;
         }
-        #terminalPrompt {
+        .prompt {
             color: green;
-            margin-right: 5px;
-        }
-        input {
-            background-color: black;
-            color: green;
-            border: none;
-            outline: none;
-            font-family: monospace;
-            width: 100%;
+            font-weight: bold;
         }
         .typing-cursor {
             display: inline-block;
@@ -46,6 +35,16 @@
             height: 18px;
             background-color: green;
             animation: blink 1s steps(2) infinite;
+        }
+        input {
+            background-color: black;
+            color: green;
+            border: none;
+            outline: none;
+            font-family: monospace;
+            font-weight: bold;
+            width: 100%;
+            caret-color: green;
         }
         @keyframes blink {
             50% {
@@ -56,36 +55,24 @@
 </head>
 <body>
     <div id="chatOutput"></div>
-    <div id="terminalInput">
-        <span id="terminalPrompt">></span>
-        <input type="text" id="userInput" autofocus />
-    </div>
 
     <script>
         const chatOutput = document.getElementById('chatOutput');
-        const userInput = document.getElementById('userInput');
         const storageKey = 'matrixChatHistory';
 
         // Load conversation history from session storage
         let messages = JSON.parse(sessionStorage.getItem(storageKey)) || [];
 
         // Function to display messages with typing animation
-        async function displayMessage(sender, text, isAI = false) {
+        async function displayMessage(sender, text, isUser = false) {
+            const prompt = isUser ? '>' : 'AI:';
             const messageElement = document.createElement('div');
-            messageElement.innerHTML = `<strong>${sender}:</strong> `;
+            messageElement.innerHTML = `<span class="prompt">${prompt}</span> `;
             chatOutput.appendChild(messageElement);
 
             for (let i = 0; i < text.length; i++) {
                 messageElement.innerHTML += text[i];
                 await new Promise((resolve) => setTimeout(resolve, 50)); // Typing effect
-            }
-
-            if (isAI) {
-                // Remove cursor after the AI finishes typing
-                const cursor = document.createElement('span');
-                cursor.className = 'typing-cursor';
-                messageElement.appendChild(cursor);
-                setTimeout(() => cursor.remove(), 500);
             }
 
             chatOutput.scrollTop = chatOutput.scrollHeight; // Scroll to bottom
@@ -94,32 +81,46 @@
         // Load messages on page load
         async function loadHistory() {
             for (const message of messages) {
-                await displayMessage(message.sender, message.text);
+                await displayMessage(message.sender, message.text, message.sender === 'You');
             }
+            // Add a new input line for typing
+            addInputLine();
         }
         loadHistory();
 
-        // Handle user input
-        userInput.addEventListener('keypress', async (event) => {
-            if (event.key === 'Enter') {
-                const userMessage = userInput.value.trim();
-                if (!userMessage) return;
+        // Function to add a new input line
+        function addInputLine() {
+            const inputWrapper = document.createElement('div');
+            inputWrapper.innerHTML = `<span class="prompt">></span> `;
+            const inputField = document.createElement('input');
+            inputField.type = 'text';
+            inputField.autofocus = true;
 
-                // Display user's message
-                messages.push({ sender: 'You', text: userMessage });
-                sessionStorage.setItem(storageKey, JSON.stringify(messages));
-                await displayMessage('You', userMessage);
+            inputWrapper.appendChild(inputField);
+            chatOutput.appendChild(inputWrapper);
+            chatOutput.scrollTop = chatOutput.scrollHeight; // Scroll to bottom
 
-                // Clear input field
-                userInput.value = '';
+            inputField.addEventListener('keypress', async (event) => {
+                if (event.key === 'Enter') {
+                    const userMessage = inputField.value.trim();
+                    if (!userMessage) return;
 
-                // Simulate AI response
-                const aiResponse = "This is a response from the AI.";
-                messages.push({ sender: 'AI', text: aiResponse });
-                sessionStorage.setItem(storageKey, JSON.stringify(messages));
-                await displayMessage('AI', aiResponse, true);
-            }
-        });
+                    // Remove the input field and replace it with text
+                    inputWrapper.innerHTML = `<span class="prompt">></span> ${userMessage}`;
+                    messages.push({ sender: 'You', text: userMessage });
+                    sessionStorage.setItem(storageKey, JSON.stringify(messages));
+
+                    // Simulate AI response
+                    const aiResponse = "This is a response from the AI.";
+                    messages.push({ sender: 'AI', text: aiResponse });
+                    sessionStorage.setItem(storageKey, JSON.stringify(messages));
+                    await displayMessage('AI', aiResponse);
+
+                    // Add a new input line
+                    addInputLine();
+                }
+            });
+        }
     </script>
 </body>
 </html>
