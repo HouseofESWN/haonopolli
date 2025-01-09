@@ -3,108 +3,137 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>XIVXVIMatrix Chat</title>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self';">
+    <title>XVXV matrix</title>
     <style>
         body {
-            background-color: black;
-            color: green;
-            font-family: "Courier New", monospace;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-        }
-        #chatOutput {
-            flex-grow: 1;
+            font-family: Arial, sans-serif;
             padding: 20px;
-            overflow-y: auto;
-            border: 1px solid green;
+            background-color: #f4f4f9;
         }
-        #inputContainer {
-            display: flex;
+
+        #chat-container {
+            max-width: 600px;
+            margin: auto;
             padding: 10px;
-            border-top: 1px solid green;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
         }
-        #userInput {
-            flex-grow: 1;
-            background-color: black;
-            color: green;
-            border: 1px solid green;
-            font-family: "Courier New", monospace;
-            padding: 5px;
+
+        #messages {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+            max-height: 400px;
+            overflow-y: auto;
         }
-        #sendButton {
-            background-color: black;
-            color: green;
-            border: 1px solid green;
-            font-family: "Courier New", monospace;
-            padding: 5px 10px;
-            cursor: pointer;
+
+        #messages li {
+            padding: 10px;
+            margin-bottom: 10px;
+            background-color: #f1f1f1;
+            border-radius: 5px;
+        }
+
+        #messages li.user {
+            background-color: #d0f0c0;
+            text-align: right;
+        }
+
+        #messages li.ai {
+            background-color: #c0d0f0;
+            text-align: left;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            font-size: 16px;
+            border-radius: 5px;
+        }
+
+        button:disabled {
+            background-color: #cccccc;
         }
     </style>
 </head>
 <body>
-    <div id="chatOutput"></div>
-    <div id="inputContainer">
-        <input id="userInput" type="text" placeholder="Type your message here..." autocomplete="off">
-        <button id="sendButton">Send</button>
+    <div id="chat-container">
+        <h2>AI Chat</h2>
+        <ul id="messages"></ul>
+        <input type="text" id="userMessage" placeholder="Type a message" />
+        <button id="sendMessageButton">Send</button>
     </div>
 
     <script>
-        // Function to send a message to the backend
-        async function sendMessage() {
-            const inputField = document.getElementById("userInput");
-            const userMessage = inputField.value; // Get user input
+        // Get references to HTML elements
+        const userMessageInput = document.getElementById('userMessage');
+        const sendMessageButton = document.getElementById('sendMessageButton');
+        const messagesList = document.getElementById('messages');
 
-            if (!userMessage.trim()) {
-                addMessageToChat("AI", "Please type a message before sending.");
-                return;
-            }
+        // Event listener for the "Send" button
+        sendMessageButton.addEventListener('click', sendMessage);
 
-            // Add the user's message to the chat
-            addMessageToChat("You", userMessage);
+        // Handle the sending of a message
+        function sendMessage() {
+            const message = userMessageInput.value.trim();
 
-            try {
-                // Send the message to the backend
-                const response = await fetch("http://localhost:4000/api/chat", {
-                    method: "POST",
+            if (message) {
+                // Add the user message to the chat
+                addMessageToChat(message, 'user');
+                userMessageInput.value = ''; // Clear input field
+                sendMessageButton.disabled = true; // Disable the button temporarily
+
+                // Call backend to get AI response
+                fetch('http://localhost:4000/api/chat', {
+                    method: 'POST',
                     headers: {
-                        "Content-Type": "application/json",
+                        'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ message: userMessage }),
+                    body: JSON.stringify({ message })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Add the AI response to the chat
+                    addMessageToChat(data.reply, 'ai');
+                    sendMessageButton.disabled = false; // Enable button after response
+                })
+                .catch(error => {
+                    // Handle any errors
+                    console.error('Error:', error);
+                    addMessageToChat('Sorry, something went wrong. Please try again later.', 'ai');
+                    sendMessageButton.disabled = false; // Enable button after error
                 });
-
-                if (!response.ok) {
-                    throw new Error("Failed to connect to the server.");
-                }
-
-                const data = await response.json();
-                addMessageToChat("AI", data.reply);
-            } catch (error) {
-                addMessageToChat("AI", `Error: ${error.message}`);
             }
-
-            // Clear the input field
-            inputField.value = "";
         }
 
-        // Function to add messages to the chat
-        function addMessageToChat(sender, message) {
-            const chatOutput = document.getElementById("chatOutput");
-            const newMessage = document.createElement("div");
-            newMessage.textContent = `${sender}: ${message}`;
-            chatOutput.appendChild(newMessage);
-            chatOutput.scrollTop = chatOutput.scrollHeight; // Scroll to the bottom
+        // Function to add messages to the chat interface
+        function addMessageToChat(message, sender) {
+            const li = document.createElement('li');
+            li.textContent = message;
+            li.classList.add(sender);
+            messagesList.appendChild(li);
+
+            // Scroll to the bottom of the chat
+            messagesList.scrollTop = messagesList.scrollHeight;
         }
 
-        // Add event listener to the "Send" button
-        document.getElementById("sendButton").addEventListener("click", sendMessage);
-
-        // Add event listener for pressing "Enter" in the input field
-        document.getElementById("userInput").addEventListener("keydown", (event) => {
-            if (event.key === "Enter") {
-                sendMessage();
-            }
+        // Enable the "Send" button when the user types in the input field
+        userMessageInput.addEventListener('input', () => {
+            sendMessageButton.disabled = !userMessageInput.value.trim();
         });
     </script>
 </body>
