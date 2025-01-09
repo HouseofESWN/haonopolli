@@ -1,139 +1,228 @@
-<!DOCTYPE html>
-<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self';">
-    <title>XVXV matrix</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            padding: 20px;
-            background-color: #f4f4f9;
-        }
-
-        #chat-container {
-            max-width: 600px;
-            margin: auto;
-            padding: 10px;
-            background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        #messages {
-            list-style-type: none;
-            padding: 0;
-            margin: 0;
-            max-height: 400px;
-            overflow-y: auto;
-        }
-
-        #messages li {
-            padding: 10px;
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XXXMatrix Chat</title>
+    <title>XIXIXIMatrix Chat</title>
+<style>
+body {
+background-color: black;
+color: green;
+            font-family: 'Courier New', monospace; /* Retro and consistent typography */
+            font-family: 'Courier New', monospace;
+margin: 0;
+padding: 0;
+display: flex;
+flex-direction: column;
+justify-content: center;
+            align-items: center;
+height: 100vh;
+}
+#chatOutput {
+            flex-grow: 1;
+            width: 90%;
+            max-width: 800px;
+            border: 1px solid green;
+padding: 10px;
             margin-bottom: 10px;
-            background-color: #f1f1f1;
-            border-radius: 5px;
+overflow-y: auto;
+            white-space: pre-wrap;
+            font-size: 18px; /* Unified font size */
+            font-weight: bold; /* Consistent boldness */
         }
-
-        #messages li.user {
-            background-color: #d0f0c0;
-            text-align: right;
-        }
-
-        #messages li.ai {
-            background-color: #c0d0f0;
-            text-align: left;
-        }
-
-        input[type="text"] {
-            width: 100%;
-            padding: 10px;
-            margin-top: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-
-        button {
-            width: 100%;
-            padding: 10px;
-            margin-top: 10px;
+        .prompt {
+            color: green;
+            font-weight: bold;
+            height: 60%;
+}
+        .inputWrapper {
+        #inputWrapper {
+            width: 90%;
+            max-width: 800px;
+display: flex;
+            align-items: center;
+            position: relative;
+            font-size: 18px; /* Match the font size of chatOutput */
+            font-weight: bold; /* Match the font weight of chatOutput */
+}
+        .inputWrapper input {
+        #inputField {
+            flex-grow: 1;
+background-color: black;
+color: green;
             border: none;
-            background-color: #007bff;
-            color: white;
+            font-family: 'Courier New', monospace;
             font-size: 16px;
-            border-radius: 5px;
+            border: 1px solid green;
+            padding: 10px;
         }
-
-        button:disabled {
-            background-color: #cccccc;
+        #inputField:focus {
+outline: none;
         }
-    </style>
+        #submitButton {
+            background-color: black;
+            color: green;
+            border: 1px solid green;
+            padding: 10px;
+font-family: 'Courier New', monospace;
+            font-weight: bold;
+            font-size: 18px; /* Consistent font size */
+            caret-color: transparent; /* Hides the default caret */
+            width: 100%;
+            position: relative;
+            cursor: pointer;
+}
+        .blockCursor {
+            position: absolute;
+            width: 10px;
+            height: 18px;
+        #submitButton:hover {
+background-color: green;
+            animation: blink 1s steps(2) infinite;
+            pointer-events: none; /* Prevent interaction with the cursor */
+        }
+        @keyframes blink {
+            50% {
+                background-color: black;
+            }
+            color: black;
+}
+</style>
 </head>
 <body>
-    <div id="chat-container">
-        <h2>AI Chat</h2>
-        <ul id="messages"></ul>
-        <input type="text" id="userMessage" placeholder="Type a message" />
-        <button id="sendMessageButton">Send</button>
+<div id="chatOutput"></div>
+    <div id="inputWrapper">
+        <input type="text" id="inputField" placeholder="Type your message here...">
+        <button id="submitButton">Send</button>
     </div>
 
-    <script>
-        // Get references to HTML elements
-        const userMessageInput = document.getElementById('userMessage');
-        const sendMessageButton = document.getElementById('sendMessageButton');
-        const messagesList = document.getElementById('messages');
+<script>
+// Store conversation history in memory
+let conversationHistory = [];
 
-        // Event listener for the "Send" button
-        sendMessageButton.addEventListener('click', sendMessage);
+const chatOutput = document.getElementById('chatOutput');
+        const inputField = document.getElementById('inputField');
+        const submitButton = document.getElementById('submitButton');
 
-        // Handle the sending of a message
-        function sendMessage() {
-            const message = userMessageInput.value.trim();
+        // Function to append messages to the chat output
+        function appendMessage(role, message) {
+            console.log(`Appending message: [${role}] ${message}`);
+            const newMessage = document.createElement('div');
+            newMessage.textContent = `${role}: ${message}`;
+            chatOutput.appendChild(newMessage);
+            chatOutput.scrollTop = chatOutput.scrollHeight; // Auto-scroll to the bottom
+        }
 
-            if (message) {
-                // Add the user message to the chat
-                addMessageToChat(message, 'user');
-                userMessageInput.value = ''; // Clear input field
-                sendMessageButton.disabled = true; // Disable the button temporarily
+// Function to fetch AI response from the backend
+        async function fetchAIResponse() {
+        async function fetchAIResponse(userMessage) {
+try {
+                const response = await fetch('https://haonopollibackend-8dd8390a8f60.herokuapp.com/api/chat', { // Replace with your Heroku backend URL if different
+                console.log("Sending request to backend...");
+                conversationHistory.push({ role: "user", content: userMessage }); // Add user message to history
 
-                // Call backend to get AI response
-                fetch('http://localhost:4000/api/chat', {
-                    method: 'POST',
+                const response = await fetch('https://haonopollibackend-8dd8390a8f60.herokuapp.com/api/chat', {
+method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ message })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    // Add the AI response to the chat
-                    addMessageToChat(data.reply, 'ai');
-                    sendMessageButton.disabled = false; // Enable button after response
-                })
-                .catch(error => {
-                    // Handle any errors
-                    console.error('Error:', error);
-                    addMessageToChat('Sorry, something went wrong. Please try again later.', 'ai');
-                    sendMessageButton.disabled = false; // Enable button after error
-                });
+                    body: JSON.stringify({
+                        messages: conversationHistory, // Send conversation history
+                    }),
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ messages: conversationHistory }),
+});
+
+                const data = await response.json();
+                if (data.response) {
+                    return data.response;
+                } else {
+                    return 'Error: Failed to fetch AI response.';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                return 'Error: Unable to connect to the server.';
             }
         }
 
-        // Function to add messages to the chat interface
-        function addMessageToChat(message, sender) {
-            const li = document.createElement('li');
-            li.textContent = message;
-            li.classList.add(sender);
-            messagesList.appendChild(li);
+        // Function to display messages with typing animation
+        async function displayMessage(sender, text) {
+            const prompt = sender === 'user' ? '>' : 'H:';
+            const messageElement = document.createElement('div');
+            messageElement.style.fontWeight = 'bold'; // Ensure consistent boldness
+            messageElement.style.fontSize = '18px'; // Ensure consistent font size
+            messageElement.innerHTML = `<span class="prompt">${prompt}</span> `;
+            chatOutput.appendChild(messageElement);
 
-            // Scroll to the bottom of the chat
-            messagesList.scrollTop = messagesList.scrollHeight;
+            for (let i = 0; i < text.length; i++) {
+                messageElement.innerHTML += text[i];
+                await new Promise((resolve) => setTimeout(resolve, 50)); // Typing effect (50ms per letter)
+            }
+
+            chatOutput.scrollTop = chatOutput.scrollHeight; // Scroll to bottom
         }
 
-        // Enable the "Send" button when the user types in the input field
-        userMessageInput.addEventListener('input', () => {
-            sendMessageButton.disabled = !userMessageInput.value.trim();
+        // Function to handle user input
+        async function handleUserInput(userMessage) {
+            // Add user message to conversation history
+            conversationHistory.push({ role: 'user', content: userMessage });
+                console.log("Received response from backend:", response);
+
+            // Display user message
+            await displayMessage('user', userMessage);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+            // Fetch AI response
+            const aiResponse = await fetchAIResponse();
+                const data = await response.json();
+                console.log("Parsed response data:", data);
+
+            // Add AI response to conversation history
+            conversationHistory.push({ role: 'assistant', content: aiResponse });
+                const aiMessage = data.reply || "No reply received";
+                conversationHistory.push({ role: "assistant", content: aiMessage }); // Add AI response to history
+
+            // Display AI response
+            await displayMessage('AI', aiResponse);
+                // Append AI response to chat
+                appendMessage("AI", aiMessage);
+            } catch (error) {
+                console.error("Error fetching AI response:", error);
+                appendMessage("System", "Error: Unable to connect to the server.");
+            }
+}
+
+        // Function to add a new input line
+        function addInputLine() {
+            const inputWrapper = document.createElement('div');
+            inputWrapper.className = 'inputWrapper';
+            inputWrapper.innerHTML = `<span class="prompt">></span> `;
+            const inputField = document.createElement('input');
+            const blockCursor = document.createElement('div');
+            blockCursor.className = 'blockCursor';
+
+            inputWrapper.appendChild(inputField);
+            inputWrapper.appendChild(blockCursor);
+            chatOutput.appendChild(inputWrapper);
+            chatOutput.scrollTop = chatOutput.scrollHeight; // Scroll to bottom
+        // Event listener for button click
+        submitButton.addEventListener('click', () => {
+            const userMessage = inputField.value.trim();
+            if (userMessage) {
+                appendMessage("You", userMessage); // Append user message to chat
+                inputField.value = ""; // Clear the input field
+                fetchAIResponse(userMessage); // Fetch AI response
+            }
+        });
+
+            // Adjust block cursor position dynamically
+            input
+        // Event listener for Enter key
+        inputField.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                submitButton.click();
+            }
         });
     </script>
 </body>
