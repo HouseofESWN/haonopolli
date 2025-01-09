@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>XVII Matrix</title>
+    <title>XVIII Matrix</title>
     <style>
         /* Style for the entire page */
         body {
@@ -17,7 +17,6 @@
             justify-content: center; /* Center content vertically */
             height: 100vh; /* Full height of the viewport */
         }
-
         /* Style for the chat output area */
         #chatOutput {
             flex-grow: 1; /* Allows the chat area to grow and fill available space */
@@ -27,22 +26,19 @@
             font-size: 18px; /* Size of the text */
             font-weight: bold; /* Bold text */
         }
-
         /* Style for the "prompt" (e.g., ">") before each message */
         .prompt {
             color: green; /* Matches the Matrix green aesthetic */
             font-weight: bold; /* Make the text bold */
         }
-
         /* Style for the input area */
         .inputWrapper {
             display: flex; /* Align input and prompt horizontally */
             align-items: center; /* Vertically center the input field */
-            position: relative; /* Allows for absolute positioning of child elements */
             font-size: 18px; /* Font size for the input text */
             font-weight: bold; /* Bold input text */
+            position: relative; /* Relative positioning for the block cursor */
         }
-
         /* Style for the input field */
         .inputWrapper input {
             background-color: black; /* Black background for the input */
@@ -53,21 +49,16 @@
             font-weight: bold; /* Bold input text */
             font-size: 18px; /* Font size for the input text */
             width: 100%; /* Makes the input take up all available horizontal space */
-            caret-color: transparent; /* Hide the default caret */
+            caret-color: transparent; /* Hides the default text caret */
         }
-
-        /* Block cursor effect */
-        .inputWrapper::after {
-            content: ''; /* Creates an empty block for the cursor */
-            position: absolute; /* Position it inside the input */
+        /* Block cursor */
+        .blockCursor {
+            position: absolute; /* Positioned relative to the inputWrapper */
             width: 10px; /* Width of the block cursor */
             height: 20px; /* Height of the block cursor */
             background-color: green; /* Green block for the Matrix effect */
             animation: blink 1s steps(2, start) infinite; /* Blink effect */
-            top: 50%; /* Center vertically */
-            transform: translateY(-50%); /* Adjust for proper alignment */
         }
-
         @keyframes blink {
             50% { background-color: transparent; } /* Blink effect: cursor disappears */
         }
@@ -78,32 +69,18 @@
 
     <script>
         const chatOutput = document.getElementById('chatOutput'); // Reference to the chat output area
+        let blockCursor; // Reference to the block cursor
 
         // Generate a unique userId for the session
         const userId = `user-${Math.random().toString(36).substring(2, 15)}`;
 
         // Function to display messages on the chat screen
         async function displayMessage(sender, text, isUser = false) {
-            const prompt = isUser ? '>' : 'H:'; // Use ">" for user messages and "AI:" for AI responses
+            const prompt = isUser ? '>' : 'AI:'; // Use ">" for user messages and "AI:" for AI responses
             const messageElement = document.createElement('div'); // Create a new div for the message
-            messageElement.innerHTML = `<span class="prompt">${prompt}</span> `; // Add the prompt
-
-            if (!isUser) {
-                await typeWriter(messageElement, text); // Simulate AI typing effect
-            } else {
-                messageElement.innerHTML += text; // Append user message directly
-            }
-
+            messageElement.innerHTML = `<span class="prompt">${prompt}</span> ${text}`; // Add the prompt and message
             chatOutput.appendChild(messageElement); // Add the message to the chat output area
             chatOutput.scrollTop = chatOutput.scrollHeight; // Scroll to the bottom of the chat output area
-        }
-
-        // Function to simulate AI typing effect
-        async function typeWriter(element, text) {
-            for (let i = 0; i < text.length; i++) {
-                element.innerHTML += text[i]; // Append one character at a time
-                await new Promise(resolve => setTimeout(resolve, 50)); // Wait 50ms between each character
-            }
         }
 
         // Function to add a new input line
@@ -115,12 +92,17 @@
             inputWrapper.appendChild(inputField); // Add the input field to the wrapper
             chatOutput.appendChild(inputWrapper); // Add the wrapper to the chat output area
 
+            // Create and add the block cursor
+            blockCursor = document.createElement('div');
+            blockCursor.className = 'blockCursor';
+            inputWrapper.appendChild(blockCursor);
+
             inputField.focus(); // Automatically focus on the input field
 
-            // Dynamically update block cursor position while typing
+            // Dynamically move the block cursor
             inputField.addEventListener('input', () => {
-                const cursor = inputWrapper.querySelector('::after'); // Reference the cursor
-                inputWrapper.style.setProperty('--cursor-offset', `${inputField.value.length}ch`); // Adjust position
+                const inputWidth = inputField.selectionStart * 10; // Estimate width based on character count
+                blockCursor.style.left = `${inputWidth + 20}px`; // Adjust block cursor position
             });
 
             // Listen for the user pressing the Enter key
@@ -131,6 +113,9 @@
 
                     inputWrapper.innerHTML = `<span class="prompt">></span> ${userMessage}`; 
                     // Replace the input field with the static user message
+                    blockCursor.remove(); // Remove the block cursor when submitting input
+
+                    await displayMessage('User', userMessage, true); // Display the user message
 
                     try {
                         // Send the user's message to the backend
@@ -138,7 +123,6 @@
                             method: 'POST', // Use POST to send data
                             headers: { 'Content-Type': 'application/json' }, // Specify JSON format
                             body: JSON.stringify({ message: userMessage, userId }), 
-                            // Send the user message and the unique userId
                         });
 
                         if (!response.ok) { // Check if the response status is not OK
