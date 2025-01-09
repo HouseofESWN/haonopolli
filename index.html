@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>444Matrix Chat</title>
+    <title>555Matrix Chat</title>
     <style>
         body {
             background-color: black;
@@ -26,29 +26,27 @@
             color: green;
             font-weight: bold;
         }
-        input {
+        .inputWrapper {
+            display: flex;
+            align-items: center;
+            position: relative;
+        }
+        .inputWrapper input {
             background-color: black;
             color: green;
             border: none;
             outline: none;
             font-family: monospace;
             font-weight: bold;
-            width: 100%;
             caret-color: transparent; /* Hides the default caret */
-            position: relative;
+            width: 100%;
         }
-        /* Create a flashing block cursor */
-        input::after {
-            content: '';
+        .blockCursor {
             position: absolute;
-            background-color: green;
             width: 10px;
             height: 18px;
-            animation: blink 1s steps(2, start) infinite;
-        }
-        input:focus::after {
-            left: calc(100% - 10px); /* Always follows the typing position */
-            top: 0;
+            background-color: green;
+            animation: blink 1s steps(2) infinite;
         }
         @keyframes blink {
             50% {
@@ -84,14 +82,22 @@
         // Function to add a new input line
         function addInputLine() {
             const inputWrapper = document.createElement('div');
+            inputWrapper.className = 'inputWrapper';
             inputWrapper.innerHTML = `<span class="prompt">></span> `;
             const inputField = document.createElement('input');
-            inputField.type = 'text';
-            inputField.autofocus = true;
+            const blockCursor = document.createElement('div');
+            blockCursor.className = 'blockCursor';
 
             inputWrapper.appendChild(inputField);
+            inputWrapper.appendChild(blockCursor);
             chatOutput.appendChild(inputWrapper);
             chatOutput.scrollTop = chatOutput.scrollHeight; // Scroll to bottom
+
+            // Ensure the block cursor moves with the input
+            inputField.addEventListener('input', () => {
+                const textWidth = inputField.value.length * 10; // Approximate width per character
+                blockCursor.style.left = `${textWidth + 30}px`; // Adjust based on prompt and input padding
+            });
 
             inputField.focus(); // Automatically focus on the input field
 
