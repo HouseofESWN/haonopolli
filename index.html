@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>333Matrix Chat</title>
+    <title>444Matrix Chat</title>
     <style>
         body {
             background-color: black;
@@ -37,19 +37,18 @@
             caret-color: transparent; /* Hides the default caret */
             position: relative;
         }
-        input::selection {
-            background: none; /* Disables text highlighting */
-        }
-        input::before {
-            content: ""; /* Creates the block cursor */
+        /* Create a flashing block cursor */
+        input::after {
+            content: '';
             position: absolute;
+            background-color: green;
             width: 10px;
             height: 18px;
-            background-color: green;
-            animation: blink 1s steps(2) infinite;
+            animation: blink 1s steps(2, start) infinite;
+        }
+        input:focus::after {
+            left: calc(100% - 10px); /* Always follows the typing position */
             top: 0;
-            left: 0;
-            pointer-events: none;
         }
         @keyframes blink {
             50% {
