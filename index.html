@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8"> <!-- Sets the character encoding for the document -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Makes the page responsive on mobile devices -->
-    <title>XV Matrix</title> <!-- Title of the webpage -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XVI Matrix</title>
     <style>
         /* Style for the entire page */
         body {
@@ -49,6 +49,24 @@
             font-weight: bold; /* Bold input text */
             font-size: 18px; /* Font size for the input text */
             width: 100%; /* Makes the input take up all available horizontal space */
+            
+            /* Hide the default cursor */
+            caret-color: transparent;
+        }
+        /* Block cursor effect */
+        .inputWrapper::after {
+            content: ''; /* Creates an empty block for the cursor */
+            position: absolute; /* Position it inside the input */
+            width: 10px; /* Width of the block cursor */
+            height: 20px; /* Height of the block cursor */
+            background-color: green; /* Green block for the Matrix effect */
+            animation: blink 1s steps(2, start) infinite; /* Blink effect */
+            left: calc(10px + 1ch); /* Position next to the input text */
+            top: 50%; /* Center vertically */
+            transform: translateY(-50%); /* Adjust for proper alignment */
+        }
+        @keyframes blink {
+            50% { background-color: transparent; } /* Blink effect: cursor disappears */
         }
     </style>
 </head>
@@ -60,13 +78,11 @@
 
         // Generate a unique userId for the session
         const userId = `user-${Math.random().toString(36).substring(2, 15)}`; 
-        // `Math.random()` generates a random number.
-        // `.toString(36)` converts the number to a base-36 string (letters and numbers).
-        // `substring(2, 15)` extracts a portion of the string to use as a unique identifier.
+        // Generates a random unique userId for session tracking.
 
         // Function to display messages on the chat screen
         async function displayMessage(sender, text, isUser = false) {
-            const prompt = isUser ? '>' : 'AI:'; // Use ">" for user messages and "AI:" for AI responses
+            const prompt = isUser ? '>' : 'H:'; // Use ">" for user messages and "AI:" for AI responses
             const messageElement = document.createElement('div'); // Create a new div for the message
             messageElement.innerHTML = `<span class="prompt">${prompt}</span> ${text}`; // Add the prompt and message
             chatOutput.appendChild(messageElement); // Add the message to the chat output area
@@ -91,8 +107,7 @@
                     if (!userMessage) return; // If the input is empty, do nothing
 
                     inputWrapper.innerHTML = `<span class="prompt">></span> ${userMessage}`; 
-                    // Replace the input field with the static user message
-                    await displayMessage('User', userMessage, true); // Display the user message
+                    // Replace the input field with the static user message (fix for duplicate message display).
 
                     try {
                         // Send the user's message to the backend
