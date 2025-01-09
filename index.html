@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>XIXIXIMatrix Chat</title>
+    <title>XIIXIIMatrix Chat</title>
     <style>
         body {
             background-color: black;
@@ -13,121 +13,108 @@
             padding: 0;
             display: flex;
             flex-direction: column;
-            justify-content: center;
             align-items: center;
+            justify-content: center;
             height: 100vh;
         }
-        #chatOutput {
-            width: 90%;
+        #chatContainer {
+            width: 80%;
             max-width: 800px;
             border: 1px solid green;
-            padding: 10px;
-            margin-bottom: 10px;
+            padding: 20px;
             overflow-y: auto;
             height: 60%;
         }
-        #inputWrapper {
-            width: 90%;
+        #chatContainer .user-message {
+            color: green;
+        }
+        #chatContainer .ai-message {
+            color: lightgreen;
+        }
+        #inputContainer {
+            width: 80%;
             max-width: 800px;
             display: flex;
+            margin-top: 10px;
         }
         #inputField {
-            flex-grow: 1;
+            flex: 1;
+            padding: 10px;
+            font-size: 16px;
             background-color: black;
             color: green;
-            font-family: 'Courier New', monospace;
-            font-size: 16px;
             border: 1px solid green;
-            padding: 10px;
-        }
-        #inputField:focus {
             outline: none;
         }
-        #submitButton {
-            background-color: black;
-            color: green;
-            border: 1px solid green;
+        #sendButton {
             padding: 10px;
-            font-family: 'Courier New', monospace;
-            cursor: pointer;
-        }
-        #submitButton:hover {
             background-color: green;
             color: black;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        #sendButton:hover {
+            background-color: lightgreen;
         }
     </style>
 </head>
 <body>
-    <div id="chatOutput"></div>
-    <div id="inputWrapper">
-        <input type="text" id="inputField" placeholder="Type your message here...">
-        <button id="submitButton">Send</button>
+    <div id="chatContainer"></div>
+    <div id="inputContainer">
+        <input type="text" id="inputField" placeholder="Type your message here..." />
+        <button id="sendButton">Send</button>
     </div>
 
     <script>
-        // Store conversation history in memory
-        let conversationHistory = [];
+        const chatContainer = document.getElementById("chatContainer");
+        const inputField = document.getElementById("inputField");
+        const sendButton = document.getElementById("sendButton");
 
-        const chatOutput = document.getElementById('chatOutput');
-        const inputField = document.getElementById('inputField');
-        const submitButton = document.getElementById('submitButton');
-
-        // Function to append messages to the chat output
-        function appendMessage(role, message) {
-            console.log(`Appending message: [${role}] ${message}`);
-            const newMessage = document.createElement('div');
-            newMessage.textContent = `${role}: ${message}`;
-            chatOutput.appendChild(newMessage);
-            chatOutput.scrollTop = chatOutput.scrollHeight; // Auto-scroll to the bottom
+        // Add a message to the chat container
+        function addMessage(sender, message) {
+            const messageElement = document.createElement("div");
+            messageElement.classList.add(sender === "user" ? "user-message" : "ai-message");
+            messageElement.textContent = `${sender === "user" ? "You" : "AI"}: ${message}`;
+            chatContainer.appendChild(messageElement);
+            chatContainer.scrollTop = chatContainer.scrollHeight; // Auto-scroll
         }
 
-        // Function to fetch AI response from the backend
-        async function fetchAIResponse(userMessage) {
-            try {
-                console.log("Sending request to backend...");
-                conversationHistory.push({ role: "user", content: userMessage }); // Add user message to history
+        // Send message to the backend
+        async function sendMessage() {
+            const userInput = inputField.value.trim();
+            if (!userInput) return; // Skip if input is empty
 
-                const response = await fetch('https://haonopollibackend-8dd8390a8f60.herokuapp.com/api/chat', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ messages: conversationHistory }),
+            // Display the user message
+            addMessage("user", userInput);
+            inputField.value = ""; // Clear input field
+
+            // Send the message to the backend
+            try {
+                const response = await fetch("http://localhost:4000/api/chat", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ message: userInput }),
                 });
 
-                console.log("Received response from backend:", response);
-
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    addMessage("ai", data.reply); // Display AI reply
+                } else {
+                    addMessage("ai", "Error: Unable to connect to the server.");
                 }
-
-                const data = await response.json();
-                console.log("Parsed response data:", data);
-
-                const aiMessage = data.reply || "No reply received";
-                conversationHistory.push({ role: "assistant", content: aiMessage }); // Add AI response to history
-
-                // Append AI response to chat
-                appendMessage("AI", aiMessage);
             } catch (error) {
-                console.error("Error fetching AI response:", error);
-                appendMessage("System", "Error: Unable to connect to the server.");
+                addMessage("ai", "Error: Unable to connect to the server.");
+                console.error(error);
             }
         }
 
-        // Event listener for button click
-        submitButton.addEventListener('click', () => {
-            const userMessage = inputField.value.trim();
-            if (userMessage) {
-                appendMessage("You", userMessage); // Append user message to chat
-                inputField.value = ""; // Clear the input field
-                fetchAIResponse(userMessage); // Fetch AI response
-            }
-        });
-
-        // Event listener for Enter key
-        inputField.addEventListener('keydown', (event) => {
-            if (event.key === 'Enter') {
-                submitButton.click();
-            }
+        // Add event listeners
+        sendButton.addEventListener("click", sendMessage);
+        inputField.addEventListener("keydown", (event) => {
+            if (event.key === "Enter") sendMessage();
         });
     </script>
 </body>
