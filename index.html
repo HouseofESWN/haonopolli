@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>555Matrix Chat</title>
+    <title>666Matrix Chat</title>
     <style>
         body {
             background-color: black;
             color: green;
-            font-family: monospace;
+            font-family: 'Courier New', monospace; /* Retro typography */
             margin: 0;
             padding: 0;
             display: flex;
@@ -21,6 +21,7 @@
             padding: 10px;
             overflow-y: auto;
             white-space: pre-wrap;
+            font-weight: bold; /* Consistent boldness */
         }
         .prompt {
             color: green;
@@ -30,16 +31,18 @@
             display: flex;
             align-items: center;
             position: relative;
+            font-weight: bold; /* Ensure bold font while typing */
         }
         .inputWrapper input {
             background-color: black;
             color: green;
             border: none;
             outline: none;
-            font-family: monospace;
+            font-family: 'Courier New', monospace;
             font-weight: bold;
             caret-color: transparent; /* Hides the default caret */
             width: 100%;
+            position: relative;
         }
         .blockCursor {
             position: absolute;
@@ -68,14 +71,9 @@
         async function displayMessage(sender, text, isUser = false) {
             const prompt = isUser ? '>' : 'AI:';
             const messageElement = document.createElement('div');
-            messageElement.innerHTML = `<span class="prompt">${prompt}</span> `;
+            messageElement.style.fontWeight = 'bold'; // Ensure consistent boldness
+            messageElement.innerHTML = `<span class="prompt">${prompt}</span> ${text}`;
             chatOutput.appendChild(messageElement);
-
-            for (let i = 0; i < text.length; i++) {
-                messageElement.innerHTML += text[i];
-                await new Promise((resolve) => setTimeout(resolve, 50)); // Typing effect
-            }
-
             chatOutput.scrollTop = chatOutput.scrollHeight; // Scroll to bottom
         }
 
@@ -95,7 +93,7 @@
 
             // Ensure the block cursor moves with the input
             inputField.addEventListener('input', () => {
-                const textWidth = inputField.value.length * 10; // Approximate width per character
+                const textWidth = measureTextWidth(inputField.value, inputField);
                 blockCursor.style.left = `${textWidth + 30}px`; // Adjust based on prompt and input padding
             });
 
@@ -117,6 +115,14 @@
                     addInputLine();
                 }
             });
+        }
+
+        // Helper function to measure text width
+        function measureTextWidth(text, inputElement) {
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            context.font = getComputedStyle(inputElement).font;
+            return context.measureText(text).width;
         }
 
         // Initialize the first input line
