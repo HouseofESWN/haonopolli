@@ -3,49 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>XIIXIIMatrix Chat</title>
+    <title>XIIIXIIIMatrix Chat</title>
     <style>
         body {
             background-color: black;
             color: green;
-            font-family: 'Courier New', monospace;
+            font-family: "Courier New", monospace;
             margin: 0;
             padding: 0;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            justify-content: space-between;
             height: 100vh;
         }
-        #chatContainer {
-            width: 80%;
-            max-width: 800px;
-            border: 1px solid green;
+
+        #chatOutput {
+            flex-grow: 1;
             padding: 20px;
             overflow-y: auto;
-            height: 60%;
+            border: 1px solid green;
         }
-        #chatContainer .user-message {
-            color: green;
-        }
-        #chatContainer .ai-message {
-            color: lightgreen;
-        }
+
         #inputContainer {
-            width: 80%;
-            max-width: 800px;
             display: flex;
-            margin-top: 10px;
+            border-top: 1px solid green;
         }
-        #inputField {
-            flex: 1;
+
+        #userInput {
+            flex-grow: 1;
             padding: 10px;
-            font-size: 16px;
             background-color: black;
             color: green;
-            border: 1px solid green;
+            border: none;
             outline: none;
+            font-size: 16px;
         }
+
         #sendButton {
             padding: 10px;
             background-color: green;
@@ -54,67 +47,71 @@
             cursor: pointer;
             font-size: 16px;
         }
+
         #sendButton:hover {
-            background-color: lightgreen;
+            background-color: darkgreen;
         }
     </style>
 </head>
 <body>
-    <div id="chatContainer"></div>
+    <div id="chatOutput"></div>
     <div id="inputContainer">
-        <input type="text" id="inputField" placeholder="Type your message here..." />
+        <input type="text" id="userInput" placeholder="Type your message here...">
         <button id="sendButton">Send</button>
     </div>
 
     <script>
-        const chatContainer = document.getElementById("chatContainer");
-        const inputField = document.getElementById("inputField");
-        const sendButton = document.getElementById("sendButton");
+        const chatOutput = document.getElementById('chatOutput');
+        const userInput = document.getElementById('userInput');
+        const sendButton = document.getElementById('sendButton');
 
-        // Add a message to the chat container
-        function addMessage(sender, message) {
-            const messageElement = document.createElement("div");
-            messageElement.classList.add(sender === "user" ? "user-message" : "ai-message");
-            messageElement.textContent = `${sender === "user" ? "You" : "AI"}: ${message}`;
-            chatContainer.appendChild(messageElement);
-            chatContainer.scrollTop = chatContainer.scrollHeight; // Auto-scroll
+        // Function to append messages to the chat
+        function appendMessage(sender, message) {
+            const messageElement = document.createElement('div');
+            messageElement.textContent = `${sender}: ${message}`;
+            chatOutput.appendChild(messageElement);
+            chatOutput.scrollTop = chatOutput.scrollHeight;
         }
 
-        // Send message to the backend
+        // Function to send a message to the backend
         async function sendMessage() {
-            const userInput = inputField.value.trim();
-            if (!userInput) return; // Skip if input is empty
+            const message = userInput.value.trim();
+            if (!message) return;
 
-            // Display the user message
-            addMessage("user", userInput);
-            inputField.value = ""; // Clear input field
+            // Display the user's message in the chat
+            appendMessage('You', message);
 
-            // Send the message to the backend
+            // Clear the input field
+            userInput.value = '';
+
             try {
-                const response = await fetch("http://localhost:4000/api/chat", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({ message: userInput }),
+                const response = await fetch('http://localhost:4000/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message }),
                 });
 
                 if (response.ok) {
                     const data = await response.json();
-                    addMessage("ai", data.reply); // Display AI reply
+                    appendMessage('AI', data.reply);
                 } else {
-                    addMessage("ai", "Error: Unable to connect to the server.");
+                    appendMessage('AI', `Error: ${response.statusText}`);
+                    console.error('Backend returned an error:', response.statusText);
                 }
             } catch (error) {
-                addMessage("ai", "Error: Unable to connect to the server.");
-                console.error(error);
+                appendMessage('AI', 'Error: Unable to connect to the server.');
+                console.error('Error connecting to backend:', error);
             }
         }
 
-        // Add event listeners
-        sendButton.addEventListener("click", sendMessage);
-        inputField.addEventListener("keydown", (event) => {
-            if (event.key === "Enter") sendMessage();
+        // Event listener for the Send button
+        sendButton.addEventListener('click', sendMessage);
+
+        // Event listener for pressing Enter in the input field
+        userInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
         });
     </script>
 </body>
