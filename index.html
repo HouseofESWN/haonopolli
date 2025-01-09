@@ -3,113 +3,106 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>XIIIXIIIMatrix Chat</title>
+    <title>Matrix Chat</title>
     <style>
         body {
             background-color: black;
             color: green;
             font-family: "Courier New", monospace;
             margin: 0;
-            padding: 0;
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
             height: 100vh;
         }
-
         #chatOutput {
             flex-grow: 1;
             padding: 20px;
             overflow-y: auto;
             border: 1px solid green;
         }
-
         #inputContainer {
             display: flex;
+            padding: 10px;
             border-top: 1px solid green;
         }
-
         #userInput {
             flex-grow: 1;
-            padding: 10px;
             background-color: black;
             color: green;
-            border: none;
-            outline: none;
-            font-size: 16px;
+            border: 1px solid green;
+            font-family: "Courier New", monospace;
+            padding: 5px;
         }
-
         #sendButton {
-            padding: 10px;
-            background-color: green;
-            color: black;
-            border: none;
+            background-color: black;
+            color: green;
+            border: 1px solid green;
+            font-family: "Courier New", monospace;
+            padding: 5px 10px;
             cursor: pointer;
-            font-size: 16px;
-        }
-
-        #sendButton:hover {
-            background-color: darkgreen;
         }
     </style>
 </head>
 <body>
     <div id="chatOutput"></div>
     <div id="inputContainer">
-        <input type="text" id="userInput" placeholder="Type your message here...">
+        <input id="userInput" type="text" placeholder="Type your message here..." autocomplete="off">
         <button id="sendButton">Send</button>
     </div>
 
     <script>
-        const chatOutput = document.getElementById('chatOutput');
-        const userInput = document.getElementById('userInput');
-        const sendButton = document.getElementById('sendButton');
-
-        // Function to append messages to the chat
-        function appendMessage(sender, message) {
-            const messageElement = document.createElement('div');
-            messageElement.textContent = `${sender}: ${message}`;
-            chatOutput.appendChild(messageElement);
-            chatOutput.scrollTop = chatOutput.scrollHeight;
-        }
-
         // Function to send a message to the backend
         async function sendMessage() {
-            const message = userInput.value.trim();
-            if (!message) return;
+            const inputField = document.getElementById("userInput");
+            const userMessage = inputField.value; // Get user input
 
-            // Display the user's message in the chat
-            appendMessage('You', message);
+            if (!userMessage.trim()) {
+                addMessageToChat("AI", "Please type a message before sending.");
+                return;
+            }
 
-            // Clear the input field
-            userInput.value = '';
+            // Add the user's message to the chat
+            addMessageToChat("You", userMessage);
 
             try {
-                const response = await fetch('http://localhost:4000/api/chat', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ message: userMessage })
+                // Send the message to the backend
+                const response = await fetch("http://localhost:4000/api/chat", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ message: userMessage }),
                 });
 
-                if (response.ok) {
-                    const data = await response.json();
-                    appendMessage('AI', data.reply);
-                } else {
-                    appendMessage('AI', `Error: ${response.statusText}`);
-                    console.error('Backend returned an error:', response.statusText);
+                if (!response.ok) {
+                    throw new Error("Failed to connect to the server.");
                 }
+
+                const data = await response.json();
+                addMessageToChat("AI", data.reply);
             } catch (error) {
-                appendMessage('AI', 'Error: Unable to connect to the server.');
-                console.error('Error connecting to backend:', error);
+                addMessageToChat("AI", `Error: ${error.message}`);
             }
+
+            // Clear the input field
+            inputField.value = "";
         }
 
-        // Event listener for the Send button
-        sendButton.addEventListener('click', sendMessage);
+        // Function to add messages to the chat
+        function addMessageToChat(sender, message) {
+            const chatOutput = document.getElementById("chatOutput");
+            const newMessage = document.createElement("div");
+            newMessage.textContent = `${sender}: ${message}`;
+            chatOutput.appendChild(newMessage);
+            chatOutput.scrollTop = chatOutput.scrollHeight; // Scroll to the bottom
+        }
 
-        // Event listener for pressing Enter in the input field
-        userInput.addEventListener('keydown', (event) => {
-            if (event.key === 'Enter') {
+        // Add event listener to the "Send" button
+        document.getElementById("sendButton").addEventListener("click", sendMessage);
+
+        // Add event listener for pressing "Enter" in the input field
+        document.getElementById("userInput").addEventListener("keydown", (event) => {
+            if (event.key === "Enter") {
                 sendMessage();
             }
         });
