@@ -1,107 +1,125 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>XVII Matrix Chat</title>
+    <meta charset="UTF-8"> <!-- Sets the character encoding for the document -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Makes the page responsive on mobile devices -->
+    <title>XVIII Matrix Chat</title> <!-- Title of the webpage -->
     <style>
+        /* Style for the entire page */
         body {
-            background-color: black;
-            color: green;
-            font-family: 'Courier New', monospace;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            height: 100vh;
+            background-color: black; /* Black background like in The Matrix */
+            color: green; /* Green text, matching the Matrix aesthetic */
+            font-family: 'Courier New', monospace; /* Use a retro-looking font */
+            margin: 0; /* Remove default browser margins */
+            padding: 0; /* Remove default browser padding */
+            display: flex; /* Flexbox for layout */
+            flex-direction: column; /* Stack elements vertically */
+            justify-content: center; /* Center content vertically */
+            height: 100vh; /* Full height of the viewport */
         }
+        /* Style for the chat output area */
         #chatOutput {
-            flex-grow: 1;
-            padding: 10px;
-            overflow-y: auto;
-            white-space: pre-wrap;
-            font-size: 18px;
-            font-weight: bold;
+            flex-grow: 1; /* Allows the chat area to grow and fill available space */
+            padding: 10px; /* Adds some space around the text */
+            overflow-y: auto; /* Adds a scrollbar if the content overflows vertically */
+            white-space: pre-wrap; /* Preserves whitespace and line breaks */
+            font-size: 18px; /* Size of the text */
+            font-weight: bold; /* Bold text */
         }
+        /* Style for the "prompt" (e.g., ">") before each message */
         .prompt {
-            color: green;
-            font-weight: bold;
+            color: green; /* Matches the Matrix green aesthetic */
+            font-weight: bold; /* Make the text bold */
         }
+        /* Style for the input area */
         .inputWrapper {
-            display: flex;
-            align-items: center;
-            position: relative;
-            font-size: 18px;
-            font-weight: bold;
+            display: flex; /* Align input and prompt horizontally */
+            align-items: center; /* Vertically center the input field */
+            position: relative; /* Allows for absolute positioning of child elements */
+            font-size: 18px; /* Font size for the input text */
+            font-weight: bold; /* Bold input text */
         }
+        /* Style for the input field */
         .inputWrapper input {
-            background-color: black;
-            color: green;
-            border: none;
-            outline: none;
-            font-family: 'Courier New', monospace;
-            font-weight: bold;
-            font-size: 18px;
-            width: 100%;
+            background-color: black; /* Black background for the input */
+            color: green; /* Green text in the input */
+            border: none; /* Removes the border around the input */
+            outline: none; /* Removes the focus outline */
+            font-family: 'Courier New', monospace; /* Matches the chat text font */
+            font-weight: bold; /* Bold input text */
+            font-size: 18px; /* Font size for the input text */
+            width: 100%; /* Makes the input take up all available horizontal space */
         }
     </style>
 </head>
 <body>
-    <div id="chatOutput"></div>
+    <div id="chatOutput"></div> <!-- Container where chat messages will appear -->
 
     <script>
-        const chatOutput = document.getElementById('chatOutput');
+        const chatOutput = document.getElementById('chatOutput'); // Reference to the chat output area
 
+        // Generate a unique userId for the session
+        const userId = `user-${Math.random().toString(36).substring(2, 15)}`; 
+        // `Math.random()` generates a random number.
+        // `.toString(36)` converts the number to a base-36 string (letters and numbers).
+        // `substring(2, 15)` extracts a portion of the string to use as a unique identifier.
+
+        // Function to display messages on the chat screen
         async function displayMessage(sender, text, isUser = false) {
-            const prompt = isUser ? '>' : 'AI:';
-            const messageElement = document.createElement('div');
-            messageElement.innerHTML = `<span class="prompt">${prompt}</span> ${text}`;
-            chatOutput.appendChild(messageElement);
-            chatOutput.scrollTop = chatOutput.scrollHeight;
+            const prompt = isUser ? '>' : 'AI:'; // Use ">" for user messages and "AI:" for AI responses
+            const messageElement = document.createElement('div'); // Create a new div for the message
+            messageElement.innerHTML = `<span class="prompt">${prompt}</span> ${text}`; // Add the prompt and message
+            chatOutput.appendChild(messageElement); // Add the message to the chat output area
+            chatOutput.scrollTop = chatOutput.scrollHeight; // Scroll to the bottom of the chat output area
         }
 
+        // Function to add a new input line
         function addInputLine() {
-            const inputWrapper = document.createElement('div');
-            inputWrapper.className = 'inputWrapper';
-            inputWrapper.innerHTML = `<span class="prompt">></span> `;
-            const inputField = document.createElement('input');
-            inputWrapper.appendChild(inputField);
-            chatOutput.appendChild(inputWrapper);
+            const inputWrapper = document.createElement('div'); // Create a new div to hold the input
+            inputWrapper.className = 'inputWrapper'; // Apply styling to the wrapper
+            inputWrapper.innerHTML = `<span class="prompt">></span> `; // Add the ">" prompt to the input
+            const inputField = document.createElement('input'); // Create an input field for user text
+            inputWrapper.appendChild(inputField); // Add the input field to the wrapper
+            chatOutput.appendChild(inputWrapper); // Add the wrapper to the chat output area
 
-            inputField.focus();
+            inputField.focus(); // Automatically focus on the input field
 
+            // Listen for the user pressing the Enter key
             inputField.addEventListener('keypress', async (event) => {
-                if (event.key === 'Enter') {
-                    const userMessage = inputField.value.trim();
-                    if (!userMessage) return;
+                if (event.key === 'Enter') { // Check if the key pressed is Enter
+                    const userMessage = inputField.value.trim(); // Get the user's input and remove extra spaces
+                    if (!userMessage) return; // If the input is empty, do nothing
 
-                    inputWrapper.innerHTML = `<span class="prompt">></span> ${userMessage}`;
-                    await displayMessage('User', userMessage, true);
+                    inputWrapper.innerHTML = `<span class="prompt">></span> ${userMessage}`; 
+                    // Replace the input field with the static user message
+                    await displayMessage('User', userMessage, true); // Display the user message
 
                     try {
+                        // Send the user's message to the backend
                         const response = await fetch('https://haonopollibackend-8dd8390a8f60.herokuapp.com/api/chat', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ message: userMessage }),
+                            method: 'POST', // Use POST to send data
+                            headers: { 'Content-Type': 'application/json' }, // Specify JSON format
+                            body: JSON.stringify({ message: userMessage, userId }), 
+                            // Send the user message and the unique userId
                         });
 
-                        if (!response.ok) {
-                            throw new Error('Network response was not ok');
+                        if (!response.ok) { // Check if the response status is not OK
+                            throw new Error('Network response was not ok'); // Throw an error
                         }
 
-                        const data = await response.json();
-                        await displayMessage('AI', data.reply);
+                        const data = await response.json(); // Parse the JSON response
+                        await displayMessage('AI', data.reply); // Display the AI's response
                     } catch (error) {
+                        // If there's an error, display an error message
                         await displayMessage('AI', 'Error: Unable to connect to the server.');
                     }
 
-                    addInputLine();
+                    addInputLine(); // Add a new input line for the next message
                 }
             });
         }
 
-        addInputLine();
+        addInputLine(); // Add the first input line when the page loads
     </script>
 </body>
 </html>
