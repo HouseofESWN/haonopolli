@@ -1,6 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    // Determine the API base URL based on the current path
+const apiBaseUrl =
+  window.location.pathname.startsWith("/test")
+    ? "https://haonopollitest.herokuapp.com" // Test Backend
+    : "https://haonopollibackend.herokuapp.com"; // Production Backend
+
+console.log("API Base URL:", apiBaseUrl);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TEST ROGAN MVP page</title>
